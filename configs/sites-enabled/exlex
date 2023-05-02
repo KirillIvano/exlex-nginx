@@ -1,0 +1,24 @@
+server {
+    listen 80;
+    server_name exlex.site;
+
+    location /.well-known/acme-challenge {
+        root /var/www/html;
+        try_files $uri $uri/ $uri.html =404;
+    }
+
+    location / {
+        return 301 http://$server_name:443$request_uri;
+    }
+}
+
+server {
+	listen 443;
+	server_name exlex.site;
+
+    root /var/www/html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
