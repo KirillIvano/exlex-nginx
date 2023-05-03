@@ -104,4 +104,4 @@ jobs:
               --network="host" -v /var/www/html:/var/www/html \
               -v /etc/letsencrypt/live/exlex.site/fullchain.pem:/var/www/certificates/fullchain.pem \
               -v /etc/letsencrypt/live/exlex.site/privkey.pem:/var/www/certificates/privkey.pem \
-              -it wgwergwegwer/samle-nginx
+              -d --restart unless-stopped ${{ env.DEPLOY_TAG }}
