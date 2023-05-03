@@ -74,7 +74,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: prod_image
-          path: /tmp/prod_image.tar
+          path: /tmp
 
       - name: login to Docker Hub
         uses: docker/login-action@v2
@@ -91,10 +91,8 @@ jobs:
       - name: deploy image to remote server
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
+          host: exlex.site
+          username: root
           key: ${{ secrets.KEY }}
-          port: ${{ secrets.PORT }}
           script: |
             docker pull ${{ env.DEPLOY_TAG }}
-            docker kill 
