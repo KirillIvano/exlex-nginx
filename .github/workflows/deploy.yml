@@ -84,6 +84,17 @@ jobs:
 
       - name: Load image
         run: |
+          ls /tmp/prod_image.tar
           docker load --input /tmp/prod_image.tar
           docker image ls -a
 
+      - name: deploy image to remote server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            docker pull ${{ env.DEPLOY_TAG }}
+            docker kill 
