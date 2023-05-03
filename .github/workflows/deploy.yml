@@ -29,7 +29,6 @@ jobs:
           context: .
           load: false
           push: true
-          outputs: type=docker,dest=/tmp/test_image.tar
           tags: ${{ env.TEST_TAG }}
 
       - name: build production image
