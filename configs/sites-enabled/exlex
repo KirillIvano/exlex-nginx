@@ -22,6 +22,7 @@ server {
     root /var/www/html;
 
     location / {
+        add_header X-test "test";
         try_files $uri $uri/ /index.html;
     }
 }
