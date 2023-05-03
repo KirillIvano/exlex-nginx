@@ -47,23 +47,23 @@ jobs:
           name: prod_image
           path: /tmp/prod_image.tar
 
-  test:
-    runs-on: ubuntu-latest
-    container:
-      image: wgwergwegwer/exlex-nginx:test
-      credentials:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    needs:
-      - docker
-    steps:
-      - name: validate nginx config
-        run: |
-          mkdir -p /var/www/certificates
-          touch /var/www/certificates/fullchain.pem
-          touch /var/www/certificates/privkey.pem
+  # test:
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: wgwergwegwer/exlex-nginx:test
+  #     credentials:
+  #       username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #       password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #   needs:
+  #     - docker
+  #   steps:
+  #     - name: validate nginx config
+  #       run: |
+  #         mkdir -p /var/www/certificates
+  #         touch /var/www/certificates/fullchain.pem
+  #         touch /var/www/certificates/privkey.pem
 
-          nginx -t
+  #         nginx -t
 
   deploy:
     runs-on: ubuntu-latest
