@@ -96,11 +96,12 @@ jobs:
           script: |
             docker pull ${{ env.DEPLOY_TAG }} || exit 1
             docker container stop nginx || exit 1
+            docker container rm nginx || exit 1
+
             docker run --name nginx \
               -p 80:80 \
               -p 443:443 \
-              --network="host" \ 
-              -v /var/www/html:/var/www/html \
+              --network="host" -v /var/www/html:/var/www/html \
               -v /etc/letsencrypt/live/exlex.site/fullchain.pem:/var/www/certificates/fullchain.pem \
               -v /etc/letsencrypt/live/exlex.site/privkey.pem:/var/www/certificates/privkey.pem \
               -it wgwergwegwer/samle-nginx
