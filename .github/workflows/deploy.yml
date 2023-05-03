@@ -58,7 +58,7 @@ jobs:
       - docker
     steps:
       - name: checkout to current branch
-        run: nginx -t
+        run: nginx -t -c /etc/nginx/nginx.conf
 
   deploy:
     runs-on: ubuntu-latest
