@@ -57,8 +57,13 @@ jobs:
     needs:
       - docker
     steps:
-      - name: checkout to current branch
-        run: nginx -t -c /etc/nginx/nginx.conf
+      - name: validate nginx config
+        run: |
+          mkdir -p /var/www/certificates
+          touch /var/www/certificates/fullchain.pem
+          touch /var/www/certificates/privkey.pem
+
+          nginx -t
 
   deploy:
     runs-on: ubuntu-latest
