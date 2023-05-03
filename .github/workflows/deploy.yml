@@ -1,0 +1,107 @@
+on: 
+  push:
+    branches:
+      - main
+
+env:
+  TEST_TAG: wgwergwegwer/exlex-nginx:test
+  DEPLOY_TAG: wgwergwegwer/exlex-nginx:latest
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout to current branch
+        uses: actions/checkout@v3
+
+      - name: connect tools to build image
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: build test image and push to docker hub
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          load: false
+          push: true
+          tags: ${{ env.TEST_TAG }}
+
+      - name: build production image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: linux/amd64
+          push: false
+          load: false
+          outputs: type=docker,dest=/tmp/prod_image.tar
+          tags: ${{ env.DEPLOY_TAG }}
+
+      - name: save prod image
+        uses: actions/upload-artifact@v3
+        with:
+          name: prod_image
+          path: /tmp/prod_image.tar
+
+  # test:
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: wgwergwegwer/exlex-nginx:test
+  #     credentials:
+  #       username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #       password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #   needs:
+  #     - docker
+  #   steps:
+  #     - name: validate nginx config
+  #       run: |
+  #         mkdir -p /var/www/certificates
+  #         touch /var/www/certificates/fullchain.pem
+  #         touch /var/www/certificates/privkey.pem
+
+  #         nginx -t
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs:
+      - docker
+    steps:
+      - name: download prod image
+        uses: actions/download-artifact@v3
+        with:
+          name: prod_image
+          path: /tmp
+
+      - name: login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: publish production image
+        run: |
+          docker load --input /tmp/prod_image.tar
+          docker push ${{ env.DEPLOY_TAG }}
+
+      - name: deploy image to remote server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: exlex.site
+          username: root
+          key: ${{ secrets.KEY }}
+          script: |
+            docker pull ${{ env.DEPLOY_TAG }}
+            docker container stop nginx &> /dev/null
+            docker container rm nginx &> /dev/null
+
+            docker run --name nginx \
+              -p 80:80 \
+              -p 443:443 \
+              --network="host" -v /var/www/html:/var/www/html \
+              -v /etc/letsencrypt/live/exlex.site/fullchain.pem:/var/www/certificates/fullchain.pem \
+              -v /etc/letsencrypt/live/exlex.site/privkey.pem:/var/www/certificates/privkey.pem \
+              -d --restart unless-stopped ${{ env.DEPLOY_TAG }}
