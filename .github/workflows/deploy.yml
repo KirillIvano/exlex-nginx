@@ -94,9 +94,9 @@ jobs:
           username: root
           key: ${{ secrets.KEY }}
           script: |
-            docker pull ${{ env.DEPLOY_TAG }} || exit 1
-            docker container stop nginx || exit 1
-            docker container rm nginx || exit 1
+            docker pull ${{ env.DEPLOY_TAG }}
+            docker container stop nginx &> /dev/null
+            docker container rm nginx &> /dev/null
 
             docker run --name nginx \
               -p 80:80 \
