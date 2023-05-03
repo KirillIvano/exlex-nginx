@@ -8,13 +8,16 @@ server {
     }
 
     location / {
-        return 301 http://$server_name:443$request_uri;
+        return 301 https://$server_name$request_uri;
     }
 }
 
 server {
-	listen 443;
+	listen 443 ssl;
 	server_name exlex.site;
+
+    ssl_certificate /var/www/certificates/fullchain.pem;
+    ssl_certificate_key /var/www/certificates/privkey.pem;
 
     root /var/www/html;
 
