@@ -51,7 +51,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: ${{ env.TEST_TAG }}
+      image: wgwergwegwer/exlex-nginx:test
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
