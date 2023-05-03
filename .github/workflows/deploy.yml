@@ -82,11 +82,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Load image
+      - name: publish production image
         run: |
-          ls /tmp/prod_image.tar
           docker load --input /tmp/prod_image.tar
-          docker image ls -a
+          docker push ${{ env.DEPLOY_TAG }}
 
       - name: deploy image to remote server
         uses: appleboy/ssh-action@v0.1.10
@@ -95,4 +94,13 @@ jobs:
           username: root
           key: ${{ secrets.KEY }}
           script: |
-            docker pull ${{ env.DEPLOY_TAG }}
+            docker pull ${{ env.DEPLOY_TAG }} || exit 1
+            docker container stop nginx || exit 1
+            docker run --name nginx \
+              -p 80:80 \
+              -p 443:443 \
+              --network="host" \ 
+              -v /var/www/html:/var/www/html \
+              -v /etc/letsencrypt/live/exlex.site/fullchain.pem:/var/www/certificates/fullchain.pem \
+              -v /etc/letsencrypt/live/exlex.site/privkey.pem:/var/www/certificates/privkey.pem \
+              -it wgwergwegwer/samle-nginx
