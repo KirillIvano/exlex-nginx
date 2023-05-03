@@ -52,8 +52,8 @@ jobs:
     container:
       image: wgwergwegwer/exlex-nginx:test
       credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.github_token }}
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     needs:
       - docker
     steps:
