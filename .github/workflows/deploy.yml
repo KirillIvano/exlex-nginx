@@ -28,34 +28,58 @@ jobs:
         with:
           context: .
           load: false
-          push: false
+          push: true
+          outputs: type=docker,dest=/tmp/test_image.tar
           tags: ${{ env.TEST_TAG }}
-          outputs: type=docker,dest=/tmp/myimage.tar
 
-      - name: build image and push to docker hub
+      - name: build production image
         uses: docker/build-push-action@v4
         with:
           context: .
           platforms: linux/amd64
-          push: true
+          push: false
+          load: false
+          outputs: type=docker,dest=/tmp/prod_image.tar
           tags: ${{ env.DEPLOY_TAG }}
 
-      - name: upload test image
+      - name: save prod image
         uses: actions/upload-artifact@v3
         with:
-          name: test_image
-          path: /tmp/myimage.tar
+          name: prod_image
+          path: /tmp/prod_image.tar
 
   test:
     runs-on: ubuntu-latest
+    container:
+      image: ${{ env.TEST_TAG }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    needs:
+      - docker
     steps:
       - name: checkout to current branch
-        uses: actions/checkout@v3
-      - name: login to docker
+        run: nginx -t
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs:
+      - test
+    steps:
+      - name: download prod image
+        uses: actions/download-artifact@v3
+        with:
+          name: prod_image
+          path: /tmp/prod_image.tar
+
+      - name: login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: run container in test mode
+
+      - name: Load image
         run: |
-          echo "hello test"
+          docker load --input /tmp/prod_image.tar
+          docker image ls -a
+
